@@ -19,7 +19,6 @@ app.use(morgan('dev'));
 
 app.use('/api', router);
 
-// Запуск сервера
 app.listen(port, async () => {
     try {
         // Connect the client to the server	(optional starting in v4.7)

@@ -1,13 +1,21 @@
 import { User } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
-import { CustomRequest, CustomResponse, RequestWithBody } from "../types";
+import {CustomRequest, CustomResponse, RequestWithBody, RequestWithUser} from "../types";
 import { prisma } from "../../prisma/prisma-client";
+import jwt from "jsonwebtoken";
 
 interface SendSMSCodePayload {
     phoneNumber: string | number,
     code: string
 }
+
+interface LoginPayload {
+    phone_number: string,
+    email: string,
+    password: string
+}
+
 interface RegistrationPayload {
     username: string,
     password: string,
@@ -64,8 +72,37 @@ export const UserController = {
            console.log(e, 'error with registration')
        }
     },
-    login: async(req: CustomRequest, res: CustomResponse<any>) => {
-        res.send('login');
+    login: async(req: RequestWithBody<LoginPayload>, res: CustomResponse<any>) => {
+       const { phone_number, password, email } = req.body
+
+        if (!phone_number || !password || !email){
+            return res.status(400).json({ error: "phone_number or email and password is required" })
+        }
+
+        try {
+            const user = await prisma.user.findUnique({ where: { email } })
+
+            if (!user) {
+                return res.status(400).json({  error: 'User not found' })
+            }
+
+            const valid = await bcrypt.compare(password, user.password)
+
+            if (!valid) {
+                return res.status(400).json({  error: 'Wrong login or password' })
+            }
+            const SECRET_KEY = process.env.SECRET_KEY ?? ''
+
+            const token = jwt.sign({
+                    id: user.id
+                }, SECRET_KEY
+            )
+
+            res.json({token})
+        } catch (e) {
+            console.log(e, 'Error login')
+            res.status(400).json({ error: 'Error login' })
+        }
     },
     getUserById: async(req: CustomRequest, res: CustomResponse<any>) => {
         res.send('getUserById');
@@ -86,6 +123,28 @@ export const UserController = {
         const secretCode = 'secretCode'
 
         res.send({ secretCode });
+    },
+    deleteUser: async(req: RequestWithUser, res: CustomResponse<any>) => {
+        const userId = req.user.id
+
+        if (!userId){
+            return res.status(400).json({ error: 'This user not found!' })
+        }
+
+        try {
+            const user = await prisma.user.findUnique({ where: { id: userId }})
+
+            if (!user) {
+                return  res.status(400).json({ error: "User not found" })
+            }
+
+           const result =  await prisma.user.delete({ where: { id: userId } });
+
+           res.json({ success: !!result })
+        } catch (e){
+            console.log(e, 'Error deleteUser')
+            res.status(400).json({ error: 'Error deleteUser' });
+        }
     },
 }
 

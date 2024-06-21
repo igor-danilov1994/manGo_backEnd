@@ -11,7 +11,8 @@ const {
     getUserById,
     getMyData,
     updateUser,
-    sendSMSCode
+    sendSMSCode,
+    deleteUser
 } = UserController
 
 //USER
@@ -20,7 +21,8 @@ router.post('/registration', registration)
 router.post('/send-sms-code', sendSMSCode)
 router.get('/current', checkUserAuth, getMyData)
 router.get('/user/:id', checkUserAuth, getUserById)
-router.put('/users/:id', checkUserAuth, updateUser)
+router.put('/user/:id', checkUserAuth, updateUser)
+router.delete('/user/delete', checkUserAuth, deleteUser)
 // router.put('/users/:id', checkUserAuth, uploads.single('avatar'), updateUser)
 
 export default router;

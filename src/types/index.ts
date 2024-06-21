@@ -9,6 +9,7 @@ export type RequestWithQuery<T> = Request<{}, {}, {}, T>
 export type RequestWithParams<T> = Request<T>
 
 
-export interface RequestWithUser extends CustomRequest {
-    user?:  string | jwt.JwtPayload
+export interface RequestWithUser extends Request {
+    user: { id: string, iat: number }
 }
+

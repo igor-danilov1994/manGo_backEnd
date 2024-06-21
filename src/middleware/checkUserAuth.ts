@@ -19,7 +19,8 @@ export const checkUserAuth = (
             return res.status(400).json({ error: "Invalid token" })
         }
 
-        req.user = user
+        //@ts-ignore
+        req.user = user as RequestWithUser
         next()
     })
 }
