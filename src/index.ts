@@ -9,7 +9,7 @@ import router from './routers/index';
 dotenv.config();
 const DB_URL = process.env.DB_URL
 
-const app = express();
+export const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware
@@ -29,3 +29,7 @@ app.listen(port, async () => {
         console.log(e, 'error start server/ error connect mongodb')
     }
 });
+
+export function closeServer() {
+    app.delete
+}

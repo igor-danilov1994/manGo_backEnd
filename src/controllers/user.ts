@@ -1,7 +1,13 @@
 import { User } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
-import {CustomRequest, CustomResponse, RequestWithBody, RequestWithUser} from "../types";
+import {
+    CustomRequest,
+    CustomResponse,
+    RequestWithBody,
+    RequestWithQuery,
+    RequestWithUser
+} from "../types";
 import { prisma } from "../../prisma/prisma-client";
 import jwt from "jsonwebtoken";
 
@@ -30,6 +36,9 @@ interface RegistrationPayload {
 }
 
 export const UserController = {
+    test: async(req: RequestWithBody<RegistrationPayload>, res: CustomResponse<User | { status: string }>) => {
+        res.send({ status: 'test passed' })
+    },
     registration: async(req: RequestWithBody<RegistrationPayload>, res: CustomResponse<User | { error: string }>) => {
         const {
             email,
@@ -124,15 +133,16 @@ export const UserController = {
 
         res.send({ secretCode });
     },
-    deleteUser: async(req: RequestWithUser, res: CustomResponse<any>) => {
+    deleteUser: async(req: RequestWithUser & RequestWithQuery<{ id: string }>, res: CustomResponse<any>) => {
         const userId = req.user.id
+        const userIdFromQuery = req.query.id
 
         if (!userId){
             return res.status(400).json({ error: 'This user not found!' })
         }
 
         try {
-            const user = await prisma.user.findUnique({ where: { id: userId }})
+            const user = await prisma.user.findUnique({ where: { id: userIdFromQuery ?? userId }})
 
             if (!user) {
                 return  res.status(400).json({ error: "User not found" })
