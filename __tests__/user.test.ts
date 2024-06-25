@@ -64,6 +64,19 @@ describe('user flows', () => {
             .set('Authorization', `Bearer ${token}`)
             .expect(200)
     });
+
+    it('detect failed login user method after delete user', async () => {
+        const resp = await runStartServer
+            .post('/api/login')
+            .send({
+                email: registrationData.email ,
+                password: registrationData.password,
+                phone_number: registrationData.phone_number,
+            })
+            .expect(400)// Failed login after delete user
+
+        token = resp.body.token
+    });
 })
 
 
