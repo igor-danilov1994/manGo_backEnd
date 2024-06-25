@@ -13,7 +13,8 @@ const {
     updateUser,
     sendSMSCode,
     deleteUser,
-    test
+    test,
+    checkSMSCode
 } = UserController
 
 //USER
@@ -21,12 +22,13 @@ router.post('/test', test)
 router.post('/login', login)
 router.post('/registration', registration)
 router.post('/send-sms-code', sendSMSCode)
+router.post('/check-sms-code', checkSMSCode)
 // @ts-ignore
-router.get('/current', checkUserAuth, getMyData)
+router.get('/getMyData', checkUserAuth, getMyData)
 // @ts-ignore
 router.get('/user/:id', checkUserAuth, getUserById)
 // @ts-ignore
-router.put('/user/:id', checkUserAuth, updateUser)
+router.put('/user', checkUserAuth, updateUser)
 // @ts-ignore
 router.delete('/user/delete', checkUserAuth, deleteUser)
 // router.put('/users/:id', checkUserAuth, uploads.single('avatar'), updateUser)

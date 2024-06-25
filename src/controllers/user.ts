@@ -1,19 +1,22 @@
 import { User } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { Request } from "express";
+import jwt from "jsonwebtoken";
 
 import {
     CustomRequest,
     CustomResponse,
-    RequestWithBody,
+    RequestWithBody, RequestWithParams,
     RequestWithQuery,
     RequestWithUser
 } from "../types";
 import { prisma } from "../../prisma/prisma-client";
-import jwt from "jsonwebtoken";
+import { prepareUserData } from "../utils/prepareUserData";
+import { CustomUserType } from "../types/user";
 
 interface SendSMSCodePayload {
-    phoneNumber: string | number,
-    code: string
+    phoneNumber: number,
+    code: number
 }
 
 interface LoginPayload {
@@ -35,11 +38,15 @@ interface RegistrationPayload {
     phone_number: string
 }
 
+const smsSecretCode = 1234
+
+let userTempPhoneNumber = 0
+
 export const UserController = {
-    test: async(req: RequestWithBody<RegistrationPayload>, res: CustomResponse<User | { status: string }>) => {
+    test: async(_: Request, res: CustomResponse<{ status: 'test passed' }>) => {
         res.send({ status: 'test passed' })
     },
-    registration: async(req: RequestWithBody<RegistrationPayload>, res: CustomResponse<User | { error: string }>) => {
+    registration: async(req: RequestWithBody<RegistrationPayload>, res: CustomResponse<User>) => {
         const {
             email,
             lastname,
@@ -81,7 +88,7 @@ export const UserController = {
            console.log(e, 'error with registration')
        }
     },
-    login: async(req: RequestWithBody<LoginPayload>, res: CustomResponse<any>) => {
+    login: async(req: RequestWithBody<LoginPayload>, res: CustomResponse<{ token: string }>) => {
        const { phone_number, password, email } = req.body
 
         if (!phone_number || !password || !email){
@@ -113,25 +120,83 @@ export const UserController = {
             res.status(400).json({ error: 'Error login' })
         }
     },
-    getUserById: async(req: CustomRequest, res: CustomResponse<any>) => {
-        res.send('getUserById');
+    getUserById: async(req: RequestWithParams<{id: string}>, res: CustomResponse<CustomUserType>) => {
+        const userId = req.params.id
+
+        try {
+            const user = await prisma.user.findUnique({ where: { id: userId }})
+
+            if (!user) {
+                return res.status(400).json({ error: "User not found" })
+            }
+
+            res.send(prepareUserData(user))
+
+        } catch (e) {
+            console.log(e, 'error getMyData')
+            res.status(400).json({ error: 'Error getMyData' })
+        }
     },
-    getMyData: async(req: CustomRequest, res: CustomResponse<any>) => {
-        res.send('getMyData');
+    getMyData: async(req: RequestWithUser, res: CustomResponse<CustomUserType>) => {
+        const userId = req.user.id
+
+        try {
+            const user = await prisma.user.findUnique({ where: { id: userId }})
+
+            if (!user) {
+                return res.status(400).json({ error: "User not found" })
+            }
+
+            res.send(prepareUserData(user))
+
+        } catch (e) {
+            console.log(e, 'error getMyData')
+            res.status(400).json({ error: 'Error getMyData' })
+        }
     },
-    updateUser: async(req: CustomRequest, res: CustomResponse<any>) => {
-        res.send('updateUser');
+    updateUser: async(req: RequestWithUser, res: CustomResponse<CustomUserType>) => {
+        const userId = req.user.id
+
+        try {
+            const user = await prisma.user.findUnique({ where: { id: userId }})
+
+            if (!user) {
+                return res.status(400).json({ error: "User not found" })
+            }
+
+            res.send(prepareUserData(user))
+
+        } catch (e) {
+            console.log(e, 'error getMyData')
+            res.status(400).json({ error: 'Error getMyData' })
+        }
     },
-    sendSMSCode: async(req: RequestWithBody<SendSMSCodePayload>, res: CustomResponse<any>) => {
+    sendSMSCode: async(req: RequestWithBody<{phoneNumber: SendSMSCodePayload['phoneNumber']}>, res: CustomResponse<{secretCode: 1234}>) => {
+        const { phoneNumber } = req.body
+        //Integrate some sms send service
+
+        if (!phoneNumber){
+            return res.status(400).json({ error: 'PhoneNumber is required' })
+        }
+
+        userTempPhoneNumber = phoneNumber
+
+        res.send({ secretCode: smsSecretCode });
+    },
+    checkSMSCode: async(req: RequestWithBody<SendSMSCodePayload>, res: CustomResponse<{access: boolean}>) => {
         const { phoneNumber, code } = req.body
 
         if (!phoneNumber || !code){
-            return res.status(400).json({ error: 'Code is required' })
+            return res.status(400).json({ error: 'SecretCode and phone number is required' })
         }
 
-        const secretCode = 'secretCode'
+        const isValidData = phoneNumber === userTempPhoneNumber && code === smsSecretCode
 
-        res.send({ secretCode });
+        if (!isValidData) {
+            return res.status(400).json({ error: 'invalid code or phone number' });
+        }
+
+        res.json({ access: isValidData })
     },
     deleteUser: async(req: RequestWithUser & RequestWithQuery<{ id: string }>, res: CustomResponse<any>) => {
         const userId = req.user.id

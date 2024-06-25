@@ -1,7 +1,10 @@
 import { Request, Response } from 'express';
-import jwt from "jsonwebtoken";
 
-export type CustomResponse<T> = Response<T>
+export interface ErrorType {
+    error: string
+}
+
+export type CustomResponse<T> = Response<T | ErrorType>
 export type CustomRequest = Request
 
 export type RequestWithBody<T> = Request<{}, {}, T>

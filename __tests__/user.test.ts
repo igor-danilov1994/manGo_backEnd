@@ -1,5 +1,6 @@
 import request from "supertest";
 import { app, closeServer } from "../src";
+import { User } from "@prisma/client";
 
 const registrationData = {
     email: 'test_with_jest@test_with_jest',
@@ -16,6 +17,7 @@ const registrationData = {
 describe('user flows', () => {
     const runStartServer = request(app)
     let token = ''
+    let userId = ''
 
     afterAll(async () => {
         closeServer()
@@ -28,10 +30,12 @@ describe('user flows', () => {
     });
 
     it('check registration user method', async () => {
-       await runStartServer
+       const resp = await runStartServer
             .post('/api/registration')
             .send(registrationData)
             .expect(200)
+
+        userId = resp.body.id
     });
 
     it('check login user method', async () => {
@@ -47,11 +51,18 @@ describe('user flows', () => {
         token = resp.body.token
     });
 
-    it('check delete user method', async () => {
+    it('check getUserById user method', async () => {
        await runStartServer
-           .delete('/api/user/delete')
+           .get(`/api/user/${userId}`)
            .set('Authorization', `Bearer ${token}`)
            .expect(200)
+    });
+
+    it('check delete user method', async () => {
+        await runStartServer
+            .delete('/api/user/delete')
+            .set('Authorization', `Bearer ${token}`)
+            .expect(200)
     });
 })
 
