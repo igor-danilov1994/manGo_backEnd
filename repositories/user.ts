@@ -3,8 +3,8 @@ import jwt from "jsonwebtoken";
 import { prisma } from "../prisma/prisma-client";
 import { User } from "@prisma/client";
 
-import { RegistrationPayload } from "../src/controllers/user";
 import { prepareUserData } from "../src/utils/prepareUserData";
+import { RegistrationPayload } from "../src/types/user";
 
 
 export const userRepositories = {
@@ -15,7 +15,6 @@ export const userRepositories = {
         return prisma.user.findUnique({ where });
     },
     createUser: async (userData: RegistrationPayload, password: string) => {
-
         const hashedPassword = await bcrypt.hash(password, 3)
 
         const user =  await prisma.user.create({

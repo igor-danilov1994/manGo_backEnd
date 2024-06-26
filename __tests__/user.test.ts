@@ -1,9 +1,10 @@
 import request from "supertest";
 import { app, closeServer } from "../src";
-import { LoginPayload, RegistrationPayload } from "../src/controllers/user";
+import { LoginPayload, RegistrationPayload } from "../src/types/user";
+import {afterEach} from "node:test";
 
 const registrationMockData: RegistrationPayload = {
-    email: 'test_with_jest@test_with_jest',
+    email: 'test@test.com',
     lastname: 'lastname',
     firstname: 'firstname',
     country: 'country',
@@ -13,7 +14,7 @@ const registrationMockData: RegistrationPayload = {
     secret_code: 1234,
     phone_number: 'phone_number',
     dateOfBirth: new Date().toISOString(),
-}
+};
 
 const loginMockData: LoginPayload = {
     email: registrationMockData.email,
@@ -21,59 +22,65 @@ const loginMockData: LoginPayload = {
     phone_number: registrationMockData.phone_number,
 };
 
-describe('user flows', () => {
+describe('User flows', () => {
     const runStartServer = request(app);
     let token = '';
     let userId = '';
 
-    afterAll(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Тайм-аут для ожидания завершения всех операций
-        await closeServer(); // Явный вызов await для закрытия сервера
+    afterEach(async () => {
+        await closeServer();
     });
 
-    it('test', async () => {
-        await runStartServer
+    describe('Registration and authentication', () => {
+        it('Successful user registration', async () => {
+            const response = await runStartServer
+                .post('/api/registration')
+                .send(registrationMockData)
+                .expect(200);
+
+            userId = response.body.id;
+            expect(userId).toBeDefined();
+        });
+
+        it('Successful user authentication', async () => {
+            const response = await runStartServer
+                .post('/api/login')
+                .send(loginMockData)
+                .expect(200);
+
+            token = response.body.token;
+            expect(token).toBeDefined();
+        });
+    });
+
+    describe('User actions after authentication', () => {
+        it('Get user information', async () => {
+            await runStartServer
+                .get(`/api/user/${userId}`)
+                .set('Authorization', `Bearer ${token}`)
+                .expect(200);
+        });
+
+        it('Delete user', async () => {
+            await runStartServer
+                .delete('/api/user/delete')
+                .set('Authorization', `Bearer ${token}`)
+                .expect(200);
+        });
+
+        it('Failed authentication after user deletion', async () => {
+            await runStartServer
+                .post('/api/login')
+                .send(loginMockData)
+                .expect(400); // Failed login after user deletion
+        });
+    });
+
+    it('Test endpoint', async () => {
+        const response = await runStartServer
             .post('/api/test')
-            .expect(200)
-            .expect({ status: 'test passed' });
-    });
-
-    it('check registration user method', async () => {
-        const resp = await runStartServer
-            .post('/api/registration')
-            .send(registrationMockData)
             .expect(200);
 
-        userId = resp.body.id;
-    });
-
-    it('check login user method', async () => {
-        const resp = await runStartServer
-            .post('/api/login')
-            .send(loginMockData)
-            .expect(200);
-
-        token = resp.body.token;
-    });
-
-    it('check getUserById user method', async () => {
-        await runStartServer
-            .get(`/api/user/${userId}`)
-            .set('Authorization', `Bearer ${token}`)
-            .expect(200);
-    });
-
-    it('check delete user method', async () => {
-        await runStartServer
-            .delete('/api/user/delete')
-            .set('Authorization', `Bearer ${token}`)
-            .expect(200);
-    });
-
-    it('detect failed login user method after delete user', async () => {
-        await runStartServer
-            .post('/api/login')
-            .send(loginMockData)
-            .expect(400); // Failed login after delete user
+        expect(response.body).toEqual({ status: 'test passed' });
     });
 });

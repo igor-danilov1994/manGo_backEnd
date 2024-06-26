@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
 import { Response } from 'express';
-import {RequestWithUser} from "../types/app";
+import { RequestWithUser } from "../types/app";
 
 export const checkUserAuth = (
     req: RequestWithUser,

@@ -7,32 +7,13 @@ import {
     RequestWithUser
 } from "../types/app";
 import { prepareUserData } from "../utils/prepareUserData";
-import { CustomUserType } from "../types/user";
+import {
+    CustomUserType,
+    LoginPayload,
+    RegistrationPayload,
+    SendSMSCodePayload
+} from "../types/user";
 import { userRepositories } from "../../repositories/user";
-
-interface SendSMSCodePayload {
-    phoneNumber: number,
-    code: number
-}
-
-export interface LoginPayload {
-    phone_number: string,
-    email: string,
-    password: string
-}
-
-export interface RegistrationPayload {
-    username: string,
-    password: string,
-    country: string,
-    referral: string,
-    firstname: string
-    lastname: string
-    email: string,
-    dateOfBirth: string,
-    secret_code: number,
-    phone_number: string
-}
 
 const smsSecretCode = 1234
 
@@ -55,6 +36,7 @@ export const UserController = {
        ) {
            return res.status(400).json({ error: 'Invalid data!' })
        }
+
        try {
            const existingUser = await userRepositories.findUniqueUser(req.body)
 

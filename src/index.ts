@@ -19,7 +19,7 @@ app.use(morgan('dev'));
 
 app.use('/api', router);
 
-app.listen(port, async () => {
+const server = app.listen(port, async () => {
     try {
         // Connect the client to the server	(optional starting in v4.7)
         await connect(`${DB_URL}`)
@@ -31,5 +31,17 @@ app.listen(port, async () => {
 });
 
 export function closeServer() {
-    app.delete
+    return new Promise<void>((resolve, reject) => {
+        server.close((err) => {
+            if (err) {
+                console.log('Error closing server:', err);
+                reject(err);
+                process.exit(1);
+            } else {
+                console.log('Server closed');
+                resolve();
+                process.exit(0);
+            }
+        });
+    });
 }

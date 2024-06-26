@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
+import { ValidationError } from "express-validator";
 
 export interface ErrorType {
-    error: string;
+    error: string | ValidationError[];
 }
 
 export type CustomResponse<T> = Response<T | ErrorType>;

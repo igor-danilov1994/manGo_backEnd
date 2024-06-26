@@ -2,6 +2,7 @@ import express from "express";
 
 import  { checkUserAuth } from "../middleware/checkUserAuth";
 import { UserController } from "../controllers";
+import {checkData, validateEmail} from "../middleware/validateData";
 
 
 const router = express.Router();
@@ -19,8 +20,12 @@ const {
 
 //USER
 router.post('/test', test)
-router.post('/login', login)
-router.post('/registration', registration)
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+router.post('/login', validateEmail, checkData, login)
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+router.post('/registration', validateEmail, checkData, registration)
 router.post('/send-sms-code', sendSMSCode)
 router.post('/check-sms-code', checkSMSCode)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
