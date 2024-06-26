@@ -16,66 +16,64 @@ const registrationMockData: RegistrationPayload = {
 }
 
 const loginMockData: LoginPayload = {
-    email: registrationMockData.email ,
+    email: registrationMockData.email,
     password: registrationMockData.password,
     phone_number: registrationMockData.phone_number,
 };
 
 describe('user flows', () => {
-    const runStartServer = request(app)
-    let token = ''
-    let userId = ''
+    const runStartServer = request(app);
+    let token = '';
+    let userId = '';
 
     afterAll(async () => {
-        closeServer()
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Тайм-аут для ожидания завершения всех операций
+        await closeServer(); // Явный вызов await для закрытия сервера
     });
 
-    it('test ', async () => {
+    it('test', async () => {
         await runStartServer
             .post('/api/test')
-            .expect({ status: 'test passed' })
+            .expect(200)
+            .expect({ status: 'test passed' });
     });
 
     it('check registration user method', async () => {
-       const resp = await runStartServer
+        const resp = await runStartServer
             .post('/api/registration')
             .send(registrationMockData)
-            .expect(200)
+            .expect(200);
 
-        userId = resp.body.id
+        userId = resp.body.id;
     });
 
     it('check login user method', async () => {
         const resp = await runStartServer
             .post('/api/login')
             .send(loginMockData)
-            .expect(200)
+            .expect(200);
 
-        token = resp.body.token
+        token = resp.body.token;
     });
 
     it('check getUserById user method', async () => {
-       await runStartServer
-           .get(`/api/user/${userId}`)
-           .set('Authorization', `Bearer ${token}`)
-           .expect(200)
+        await runStartServer
+            .get(`/api/user/${userId}`)
+            .set('Authorization', `Bearer ${token}`)
+            .expect(200);
     });
 
     it('check delete user method', async () => {
         await runStartServer
             .delete('/api/user/delete')
             .set('Authorization', `Bearer ${token}`)
-            .expect(200)
+            .expect(200);
     });
 
     it('detect failed login user method after delete user', async () => {
-        const resp = await runStartServer
+        await runStartServer
             .post('/api/login')
             .send(loginMockData)
-            .expect(400)// Failed login after delete user
-
-        token = resp.body.token
+            .expect(400); // Failed login after delete user
     });
-})
-
-
+});

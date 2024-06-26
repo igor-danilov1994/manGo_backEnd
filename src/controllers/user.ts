@@ -167,7 +167,7 @@ export const UserController = {
 
         res.json({ access: isValidData })
     },
-    deleteUser: async(req: RequestWithUser, res: CustomResponse<any>) => {
+    deleteUser: async(req: RequestWithUser, res: CustomResponse<{ success: boolean }>) => {
         const userId = req.user.id
 
         if (!userId){

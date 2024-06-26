@@ -23,12 +23,16 @@ router.post('/login', login)
 router.post('/registration', registration)
 router.post('/send-sms-code', sendSMSCode)
 router.post('/check-sms-code', checkSMSCode)
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 router.get('/getMyData', checkUserAuth, getMyData)
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 router.get('/user/:id', checkUserAuth, getUserById)
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 router.put('/user', checkUserAuth, updateUser)
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 router.delete('/user/delete', checkUserAuth, deleteUser)
 // router.put('/users/:id', checkUserAuth, uploads.single('avatar'), updateUser)
