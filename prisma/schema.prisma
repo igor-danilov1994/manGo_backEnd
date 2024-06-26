@@ -19,4 +19,6 @@ model User {
   referral String
   country String
   phone_number String
+  username String
+  secret_code Int
 }

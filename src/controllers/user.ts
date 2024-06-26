@@ -1,31 +1,27 @@
-import { User } from "@prisma/client";
-import bcrypt from "bcryptjs";
 import { Request } from "express";
-import jwt from "jsonwebtoken";
 
 import {
-    CustomRequest,
     CustomResponse,
-    RequestWithBody, RequestWithParams,
-    RequestWithQuery,
+    RequestWithBody,
+    RequestWithParams,
     RequestWithUser
-} from "../types";
-import { prisma } from "../../prisma/prisma-client";
+} from "../types/app";
 import { prepareUserData } from "../utils/prepareUserData";
 import { CustomUserType } from "../types/user";
+import { userRepositories } from "../../repositories/user";
 
 interface SendSMSCodePayload {
     phoneNumber: number,
     code: number
 }
 
-interface LoginPayload {
+export interface LoginPayload {
     phone_number: string,
     email: string,
     password: string
 }
 
-interface RegistrationPayload {
+export interface RegistrationPayload {
     username: string,
     password: string,
     country: string,
@@ -34,7 +30,7 @@ interface RegistrationPayload {
     lastname: string
     email: string,
     dateOfBirth: string,
-    secret: string,
+    secret_code: number,
     phone_number: string
 }
 
@@ -46,42 +42,27 @@ export const UserController = {
     test: async(_: Request, res: CustomResponse<{ status: 'test passed' }>) => {
         res.send({ status: 'test passed' })
     },
-    registration: async(req: RequestWithBody<RegistrationPayload>, res: CustomResponse<User>) => {
-        const {
-            email,
-            lastname,
-            firstname,
-            country,
-            referral,
-            username,
-            password,
-            secret,
-            phone_number,
-        } = req.body
-
-       if (!username || !secret || !lastname || !email || !firstname || !country || !password || !referral || !phone_number) {
+    registration: async(req: RequestWithBody<RegistrationPayload>, res: CustomResponse<CustomUserType>) => {
+       if (!req.body.username ||
+           !req.body.secret_code ||
+           !req.body.lastname ||
+           !req.body.email ||
+           !req.body.firstname ||
+           !req.body.country ||
+           !req.body.password ||
+           !req.body.referral ||
+           !req.body.phone_number
+       ) {
            return res.status(400).json({ error: 'Invalid data!' })
        }
        try {
-           const existingUser = await prisma.user.findUnique({ where: {email} })
+           const existingUser = await userRepositories.findUniqueUser(req.body)
 
            if (existingUser) {
                return res.status(400).json({ error: 'This email already existing!' })
            }
 
-           const hashedPassword = await bcrypt.hash(password, 3)
-
-           const user = await prisma.user.create({
-               data: {
-                   lastname,
-                   firstname,
-                   email,
-                   password: hashedPassword,
-                   referral,
-                   country,
-                   phone_number,
-               }
-           })
+           const user = await userRepositories.createUser(req.body, req.body.password)
 
            res.status(200).json(user);
        } catch (e) {
@@ -96,23 +77,17 @@ export const UserController = {
         }
 
         try {
-            const user = await prisma.user.findUnique({ where: { email } })
+            const user = await userRepositories.findUniqueUser(req.body)
 
             if (!user) {
                 return res.status(400).json({  error: 'User not found' })
             }
 
-            const valid = await bcrypt.compare(password, user.password)
+            const token = await userRepositories.loginUser(password, user)
 
-            if (!valid) {
+            if (!token) {
                 return res.status(400).json({  error: 'Wrong login or password' })
             }
-            const SECRET_KEY = process.env.SECRET_KEY ?? ''
-
-            const token = jwt.sign({
-                    id: user.id
-                }, SECRET_KEY
-            )
 
             res.json({token})
         } catch (e) {
@@ -121,10 +96,8 @@ export const UserController = {
         }
     },
     getUserById: async(req: RequestWithParams<{id: string}>, res: CustomResponse<CustomUserType>) => {
-        const userId = req.params.id
-
         try {
-            const user = await prisma.user.findUnique({ where: { id: userId }})
+            const user = await userRepositories.findUniqueUser(req.params)
 
             if (!user) {
                 return res.status(400).json({ error: "User not found" })
@@ -138,10 +111,8 @@ export const UserController = {
         }
     },
     getMyData: async(req: RequestWithUser, res: CustomResponse<CustomUserType>) => {
-        const userId = req.user.id
-
         try {
-            const user = await prisma.user.findUnique({ where: { id: userId }})
+            const user = await userRepositories.findUniqueUser(req.user)
 
             if (!user) {
                 return res.status(400).json({ error: "User not found" })
@@ -155,10 +126,8 @@ export const UserController = {
         }
     },
     updateUser: async(req: RequestWithUser, res: CustomResponse<CustomUserType>) => {
-        const userId = req.user.id
-
         try {
-            const user = await prisma.user.findUnique({ where: { id: userId }})
+            const user = await userRepositories.findUniqueUser(req.user)
 
             if (!user) {
                 return res.status(400).json({ error: "User not found" })
@@ -198,24 +167,23 @@ export const UserController = {
 
         res.json({ access: isValidData })
     },
-    deleteUser: async(req: RequestWithUser & RequestWithQuery<{ id: string }>, res: CustomResponse<any>) => {
+    deleteUser: async(req: RequestWithUser, res: CustomResponse<any>) => {
         const userId = req.user.id
-        const userIdFromQuery = req.query.id
 
         if (!userId){
             return res.status(400).json({ error: 'This user not found!' })
         }
 
         try {
-            const user = await prisma.user.findUnique({ where: { id: userIdFromQuery ?? userId }})
+            const user = await userRepositories.findUniqueUser(req.user)
 
             if (!user) {
                 return  res.status(400).json({ error: "User not found" })
             }
 
-           const result =  await prisma.user.delete({ where: { id: userId } });
+            const isSuccess = await userRepositories.deleteUser(user.id)
 
-           res.json({ success: !!result })
+           res.json({ success: isSuccess })
         } catch (e){
             console.log(e, 'Error deleteUser')
             res.status(400).json({ error: 'Error deleteUser' });

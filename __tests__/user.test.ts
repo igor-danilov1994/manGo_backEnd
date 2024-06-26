@@ -1,8 +1,8 @@
 import request from "supertest";
 import { app, closeServer } from "../src";
-import { User } from "@prisma/client";
+import { LoginPayload, RegistrationPayload } from "../src/controllers/user";
 
-const registrationData = {
+const registrationMockData: RegistrationPayload = {
     email: 'test_with_jest@test_with_jest',
     lastname: 'lastname',
     firstname: 'firstname',
@@ -10,9 +10,16 @@ const registrationData = {
     referral: 'referral',
     username: 'username',
     password: 'password',
-    secret: 'secret',
+    secret_code: 1234,
     phone_number: 'phone_number',
+    dateOfBirth: new Date().toISOString(),
 }
+
+const loginMockData: LoginPayload = {
+    email: registrationMockData.email ,
+    password: registrationMockData.password,
+    phone_number: registrationMockData.phone_number,
+};
 
 describe('user flows', () => {
     const runStartServer = request(app)
@@ -32,7 +39,7 @@ describe('user flows', () => {
     it('check registration user method', async () => {
        const resp = await runStartServer
             .post('/api/registration')
-            .send(registrationData)
+            .send(registrationMockData)
             .expect(200)
 
         userId = resp.body.id
@@ -41,11 +48,7 @@ describe('user flows', () => {
     it('check login user method', async () => {
         const resp = await runStartServer
             .post('/api/login')
-            .send({
-                email: registrationData.email ,
-                password: registrationData.password,
-                phone_number: registrationData.phone_number,
-            })
+            .send(loginMockData)
             .expect(200)
 
         token = resp.body.token
@@ -68,11 +71,7 @@ describe('user flows', () => {
     it('detect failed login user method after delete user', async () => {
         const resp = await runStartServer
             .post('/api/login')
-            .send({
-                email: registrationData.email ,
-                password: registrationData.password,
-                phone_number: registrationData.phone_number,
-            })
+            .send(loginMockData)
             .expect(400)// Failed login after delete user
 
         token = resp.body.token
