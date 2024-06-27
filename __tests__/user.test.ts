@@ -1,5 +1,5 @@
 import request from "supertest";
-import { app, closeServer } from "../src";
+import { app, closeServer } from "../index";
 import { LoginPayload, RegistrationPayload } from "../src/types/user";
 import {afterEach} from "node:test";
 

@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import {connect} from 'mongoose';
-import router from './routers/index';
+import router from './src/routers';
 
 dotenv.config();
 const DB_URL = process.env.DB_URL
