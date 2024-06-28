@@ -14,7 +14,7 @@ import {
     RegistrationPayload,
     SendSMSCodePayload
 } from "../types/user";
-import { userRepositories } from "../../repositories/user";
+import {userService} from "../../domain/userService";
 
 const smsSecretCode = 1234
 let userTempPhoneNumber = 0
@@ -26,7 +26,7 @@ export const UserController = {
     },
     createClient: async(_: Request, res: CustomResponse<AccessData>) => {
         try {
-            const createClient = await userRepositories.createClient()
+            const createClient = await userService.createClient()
 
             res.json(createClient)
         } catch (e){
@@ -49,13 +49,13 @@ export const UserController = {
        }
 
        try {
-           const existingUser = await userRepositories.findUniqueUser({email: req.body.email, id: null})
+           const existingUser = await userService.findUniqueUser({email: req.body.email, id: null})
 
            if (existingUser) {
                return res.status(400).json({ error: 'This email already existing!' })
            }
 
-           const user = await userRepositories.createUser(req.body, req.body.password)
+           const user = await userService.createUser(req.body, req.body.password)
 
            res.status(200).json(user);
        } catch (e) {
@@ -69,20 +69,20 @@ export const UserController = {
             return res.status(400).json({ error: "phone_number or email and password is required" })
         }
 
-        const accessClient = await userRepositories.checkClientAccessData({client_secret, client_id})
+        const accessClient = await userService.checkClientAccessData({client_secret, client_id})
 
         if (!accessClient){
             return res.status(400).json({ error: "Not access" })
         }
 
         try {
-            const user = await userRepositories.findUniqueUser({email: req.body.email, id: null})
+            const user = await userService.findUniqueUser({email: req.body.email, id: null})
 
             if (!user) {
                 return res.status(400).json({  error: 'User not found' })
             }
 
-            const token = await userRepositories.loginUser(password, user)
+            const token = await userService.loginUser(password, user)
 
             if (!token) {
                 return res.status(400).json({  error: 'Wrong login or password' })
@@ -96,7 +96,7 @@ export const UserController = {
     },
     getUserById: async(req: RequestWithParams<{id: string}>, res: CustomResponse<CustomUserType>) => {
         try {
-            const user = await userRepositories.findUniqueUser({email: null, id: req.params.id})
+            const user = await userService.findUniqueUser({email: null, id: req.params.id})
 
             if (!user) {
                 return res.status(400).json({ error: "User not found" })
@@ -111,7 +111,7 @@ export const UserController = {
     },
     getMyData: async(req: RequestWithUser, res: CustomResponse<CustomUserType>) => {
         try {
-            const user = await userRepositories.findUniqueUser({email: null, id: req.user.id})
+            const user = await userService.findUniqueUser({email: null, id: req.user.id})
 
             if (!user) {
                 return res.status(400).json({ error: "User not found" })
@@ -126,7 +126,7 @@ export const UserController = {
     },
     updateUser: async(req: RequestWithUser, res: CustomResponse<CustomUserType>) => {
         try {
-            const user = await userRepositories.findUniqueUser({email: null, id: req.user.id})
+            const user = await userService.findUniqueUser({email: null, id: req.user.id})
 
             if (!user) {
                 return res.status(400).json({ error: "User not found" })
@@ -174,13 +174,13 @@ export const UserController = {
         }
 
         try {
-            const user = await userRepositories.findUniqueUser({email: null, id: req.user.id})
+            const user = await userService.findUniqueUser({email: null, id: req.user.id})
 
             if (!user) {
                 return  res.status(400).json({ error: "User not found" })
             }
 
-            const isSuccess = await userRepositories.deleteUser(user.id)
+            const isSuccess = await userService.deleteUser(user.id)
 
            res.json({ success: isSuccess })
         } catch (e){
