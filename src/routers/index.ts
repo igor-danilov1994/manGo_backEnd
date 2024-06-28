@@ -26,8 +26,8 @@ router.post('/login', validateEmail, checkData, login)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 router.post('/registration', validateEmail, checkData, registration)
-router.post('/send-sms-code', sendSMSCode)
-router.post('/check-sms-code', checkSMSCode)
+router.post('registration/send-sms-code', sendSMSCode)
+router.post('registration/check-sms-code', checkSMSCode)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 router.get('/getMyData', checkUserAuth, getMyData)

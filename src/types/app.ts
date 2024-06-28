@@ -15,3 +15,6 @@ export type RequestWithParams<T> = Request<T>;
 export interface RequestWithUser extends Request {
     user: { id: string; iat: number };
 }
+
+
+export type Nullable<T> = T | null;

@@ -8,17 +8,69 @@ datasource db {
 }
 
 model User {
-  id       String   @id @default(auto()) @map("_id") @db.ObjectId
-  email    String   @unique
-  password String
-  firstname String
-  dateOfBirth String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  lastname String
-  referral String
-  country String
-  phone_number String
-  username String
-  secret_code Int
+  id                        String    @id @default(auto()) @map("_id") @db.ObjectId
+  email                     String    @unique
+  password                  String
+  firstName                 String
+  dateOfBirth               String?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+  lastName                  String
+  referral                  String
+  country                   String
+  phone_number              String
+  username                  String
+  secret_code               Int?
+  isVerify                  Int?
+  amountOfContract          Int?
+  receivedByContract        Int?
+  amountOfRewardsReceived   Int?
+  structureTurnover         Int?
+  numberOfPartners          Int?
+  dateWithUs                Int?
+  balance                   Int?
+  sessionLiveTime           Int?
+  rzmBalance                Int?
+  totalContracts            Int?
+  locale                    String?
+  middleName                String?
+  avatar                    String?
+  level                     String?
+  link                      String?
+  inviterName               String?
+  inviterEmail              String?
+  inviterPhone              String?
+  inviterAvatar             String?
+  connectLink               String?
+  rzmLevel                  String?
+  oldBalance                String?
+  hasPromo                  Boolean?
+  isTelegramConnect         Boolean?
+  canRequestCard            Boolean?
+  hasHeir                   Boolean?
+  showGlobalStat            Boolean?
+  facebook                  String?
+  instagram                 String?
+  twitter                   String?
+  telegram                  String?
+  onIncomeMail              Boolean?
+  onContractIncomeMail      Boolean?
+  onSuccessWithdrawMail     Boolean?
+  onStartBonusMail          Boolean?
+  onNewItemsInCalendarMail  Boolean?
+  onEventMail               Boolean?
+  onCourseMail              Boolean?
+  onWebinarsMail            Boolean?
+  onNewsMail                Boolean?
+  onIncomeTg                Boolean?
+  onContractIncomeTg        Boolean?
+  onSuccessWithdrawTg       Boolean?
+  onStartBonusTg            Boolean?
+  onNewItemsInCalendarTg    Boolean?
+  onEventTg                 Boolean?
+  onCourseTg                Boolean?
+  onWebinarsTg              Boolean?
+  onNewsTg                  Boolean?
+  roles                     String?
 }
+

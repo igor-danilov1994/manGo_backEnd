@@ -5,10 +5,11 @@ import { User } from "@prisma/client";
 
 import { prepareUserData } from "../src/utils/prepareUserData";
 import { RegistrationPayload } from "../src/types/user";
+import { Nullable } from "../src/types/app";
 
 
 export const userRepositories = {
-    findUniqueUser: async (data: { email?: string, id?: string }) => {
+    findUniqueUser: async (data: { email: Nullable<string>, id: Nullable<string> }) => {
         const where = data.email ? { email: data.email } : data.id ? { id: data.id } : undefined;
 
         if (!where) return false

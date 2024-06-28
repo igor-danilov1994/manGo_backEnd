@@ -25,12 +25,12 @@ export const UserController = {
     },
     registration: async(req: RequestWithBody<RegistrationPayload>, res: CustomResponse<CustomUserType>) => {
        if (!req.body.username ||
-           !req.body.secret_code ||
-           !req.body.lastname ||
-           !req.body.email ||
-           !req.body.firstname ||
-           !req.body.country ||
            !req.body.password ||
+           !req.body.secret_code ||
+           !req.body.lastName ||
+           !req.body.email ||
+           !req.body.firstName ||
+           !req.body.country ||
            !req.body.referral ||
            !req.body.phone_number
        ) {
@@ -38,7 +38,7 @@ export const UserController = {
        }
 
        try {
-           const existingUser = await userRepositories.findUniqueUser(req.body)
+           const existingUser = await userRepositories.findUniqueUser({email: req.body.email, id: null})
 
            if (existingUser) {
                return res.status(400).json({ error: 'This email already existing!' })
@@ -51,7 +51,7 @@ export const UserController = {
            console.log(e, 'error with registration')
        }
     },
-    login: async(req: RequestWithBody<LoginPayload>, res: CustomResponse<{ token: string }>) => {
+    login: async(req: RequestWithBody<LoginPayload>, res: CustomResponse<{ access_token: string }>) => {
        const { phone_number, password, email } = req.body
 
         if (!phone_number || !password || !email){
@@ -59,7 +59,7 @@ export const UserController = {
         }
 
         try {
-            const user = await userRepositories.findUniqueUser(req.body)
+            const user = await userRepositories.findUniqueUser({email: req.body.email, id: null})
 
             if (!user) {
                 return res.status(400).json({  error: 'User not found' })
@@ -71,7 +71,7 @@ export const UserController = {
                 return res.status(400).json({  error: 'Wrong login or password' })
             }
 
-            res.json({token})
+            res.json({ access_token: token})
         } catch (e) {
             console.log(e, 'Error login')
             res.status(400).json({ error: 'Error login' })
@@ -79,7 +79,7 @@ export const UserController = {
     },
     getUserById: async(req: RequestWithParams<{id: string}>, res: CustomResponse<CustomUserType>) => {
         try {
-            const user = await userRepositories.findUniqueUser(req.params)
+            const user = await userRepositories.findUniqueUser({email: null, id: req.params.id})
 
             if (!user) {
                 return res.status(400).json({ error: "User not found" })
@@ -94,7 +94,7 @@ export const UserController = {
     },
     getMyData: async(req: RequestWithUser, res: CustomResponse<CustomUserType>) => {
         try {
-            const user = await userRepositories.findUniqueUser(req.user)
+            const user = await userRepositories.findUniqueUser({email: null, id: req.user.id})
 
             if (!user) {
                 return res.status(400).json({ error: "User not found" })
@@ -109,7 +109,7 @@ export const UserController = {
     },
     updateUser: async(req: RequestWithUser, res: CustomResponse<CustomUserType>) => {
         try {
-            const user = await userRepositories.findUniqueUser(req.user)
+            const user = await userRepositories.findUniqueUser({email: null, id: req.user.id})
 
             if (!user) {
                 return res.status(400).json({ error: "User not found" })
@@ -157,7 +157,7 @@ export const UserController = {
         }
 
         try {
-            const user = await userRepositories.findUniqueUser(req.user)
+            const user = await userRepositories.findUniqueUser({email: null, id: req.user.id})
 
             if (!user) {
                 return  res.status(400).json({ error: "User not found" })
