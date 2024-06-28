@@ -8,34 +8,31 @@ import {
 } from "../types/app";
 import { prepareUserData } from "../utils/prepareUserData";
 import {
+    AccessData,
     CustomUserType,
     LoginPayload,
     RegistrationPayload,
     SendSMSCodePayload
 } from "../types/user";
 import { userRepositories } from "../../repositories/user";
-import { generateCreateClientRandomCode } from "../utils/generateCreateClientRandomCode";
 
 const smsSecretCode = 1234
 let userTempPhoneNumber = 0
-let temp_client_id = ''
-let temp_client_secret_code = ''
+
 
 export const UserController = {
     test: async(_: Request, res: CustomResponse<{ status: 'test passed' }>) => {
         res.send({ status: 'test passed' })
     },
-    createClient: async(_: Request, res: CustomResponse<{ client_id: string, client_secret: string }>) => {
-        const client_id = generateCreateClientRandomCode('numbers', 10)
-        const client_secret_code = generateCreateClientRandomCode('letters',10)
+    createClient: async(_: Request, res: CustomResponse<AccessData>) => {
+        try {
+            const createClient = await userRepositories.createClient()
 
-        temp_client_id = client_id
-        temp_client_secret_code = client_secret_code
-
-        res.send({
-            client_id,
-            client_secret: client_secret_code,
-        })
+            res.json(createClient)
+        } catch (e){
+            console.log(e, 'Error with createClient')
+            res.status(400).json({ error: 'Error createClient' })
+        }
     },
     registration: async(req: RequestWithBody<RegistrationPayload>, res: CustomResponse<CustomUserType>) => {
        if (!req.body.username ||
@@ -72,7 +69,9 @@ export const UserController = {
             return res.status(400).json({ error: "phone_number or email and password is required" })
         }
 
-        if (client_secret !== temp_client_secret_code ||  client_id !== temp_client_id){
+        const accessClient = await userRepositories.checkClientAccessData({client_secret, client_id})
+
+        if (!accessClient){
             return res.status(400).json({ error: "Not access" })
         }
 

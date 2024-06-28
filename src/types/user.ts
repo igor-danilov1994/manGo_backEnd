@@ -75,6 +75,11 @@ export interface LoginPayload {
     client_secret?: string
 }
 
+export interface AccessData {
+    client_id?: string,
+    client_secret?: string,
+}
+
 export interface RegistrationPayload {
     username: string,
     password: string ,
