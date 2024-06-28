@@ -71,6 +71,8 @@ export interface LoginPayload {
     phone_number: string | null,
     email: string | null,
     password: string | null
+    client_id?: string
+    client_secret?: string
 }
 
 export interface RegistrationPayload {

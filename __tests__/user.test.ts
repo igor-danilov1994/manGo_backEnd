@@ -22,6 +22,9 @@ const loginMockData: LoginPayload = {
     phone_number: registrationMockData.phone_number,
 };
 
+let temp_client_id = ''
+let temp_client_secret_code = ''
+
 describe('User flows', () => {
     const runStartServer = request(app);
     let token = '';
@@ -49,10 +52,23 @@ describe('User flows', () => {
         userId = response.body.id;
     });
 
+    it('Successful createClient', async () => {
+        const response = await runStartServer
+            .get('/api/create-client')
+            .expect(200);
+
+        temp_client_id = response.body.client_id;
+        temp_client_secret_code = response.body.client_secret;
+    });
+
     it('Successful user authentication', async () => {
         const response = await runStartServer
             .post('/api/login')
-            .send(loginMockData)
+            .send({
+                ...loginMockData,
+                client_id: temp_client_id,
+                client_secret: temp_client_secret_code,
+            })
             .expect(200);
 
         token = response.body.access_token;

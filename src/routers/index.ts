@@ -15,7 +15,8 @@ const {
     sendSMSCode,
     deleteUser,
     test,
-    checkSMSCode
+    checkSMSCode,
+    createClient
 } = UserController
 
 //USER
@@ -23,6 +24,7 @@ router.post('/test', test)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 router.post('/login', validateEmail, checkData, login)
+router.get('/create-client', createClient)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 router.post('/registration', validateEmail, checkData, registration)

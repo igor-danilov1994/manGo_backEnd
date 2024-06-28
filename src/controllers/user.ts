@@ -14,14 +14,28 @@ import {
     SendSMSCodePayload
 } from "../types/user";
 import { userRepositories } from "../../repositories/user";
+import { generateCreateClientRandomCode } from "../utils/generateCreateClientRandomCode";
 
 const smsSecretCode = 1234
-
 let userTempPhoneNumber = 0
+let temp_client_id = ''
+let temp_client_secret_code = ''
 
 export const UserController = {
     test: async(_: Request, res: CustomResponse<{ status: 'test passed' }>) => {
         res.send({ status: 'test passed' })
+    },
+    createClient: async(_: Request, res: CustomResponse<{ client_id: string, client_secret: string }>) => {
+        const client_id = generateCreateClientRandomCode('numbers', 10)
+        const client_secret_code = generateCreateClientRandomCode('letters',10)
+
+        temp_client_id = client_id
+        temp_client_secret_code = client_secret_code
+
+        res.send({
+            client_id,
+            client_secret: client_secret_code,
+        })
     },
     registration: async(req: RequestWithBody<RegistrationPayload>, res: CustomResponse<CustomUserType>) => {
        if (!req.body.username ||
@@ -52,10 +66,14 @@ export const UserController = {
        }
     },
     login: async(req: RequestWithBody<LoginPayload>, res: CustomResponse<{ access_token: string }>) => {
-       const { phone_number, password, email } = req.body
+       const { phone_number, password, email, client_secret, client_id } = req.body
 
         if (!phone_number || !password || !email){
             return res.status(400).json({ error: "phone_number or email and password is required" })
+        }
+
+        if (client_secret !== temp_client_secret_code ||  client_id !== temp_client_id){
+            return res.status(400).json({ error: "Not access" })
         }
 
         try {
