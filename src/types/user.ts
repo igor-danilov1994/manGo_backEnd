@@ -63,7 +63,7 @@ enum Roles {
 }
 
 export interface SendSMSCodePayload {
-    phoneNumber: number | null,
+    phone: string | null,
     code: number
 }
 
@@ -84,10 +84,9 @@ export interface RegistrationPayload {
     username: string,
     password: string ,
     country: string ,
-    referral: string ,
+    referral: number ,
     email: string,
     dateOfBirth: string,
-    secret_code: number,
     phone_number: string
     lastName: string
     firstName: string

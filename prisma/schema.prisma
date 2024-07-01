@@ -11,15 +11,15 @@ model User {
   id                        String    @id @default(auto()) @map("_id") @db.ObjectId
   email                     String    @unique
   password                  String
-  firstName                 String
+  firstName                 String?
   dateOfBirth               String?
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
-  lastName                  String
-  referral                  String
+  lastName                  String?
+  referral                  Int
   country                   String
-  phone_number              String
-  username                  String
+  phone_number              String?
+  username                  String?
   secret_code               Int?
   isVerify                  Int?
   amountOfContract          Int?

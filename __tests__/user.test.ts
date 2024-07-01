@@ -8,10 +8,9 @@ const registrationMockData: RegistrationPayload = {
     lastName: 'lastname',
     firstName: 'firstname',
     country: 'country',
-    referral: 'referral',
+    referral: 1,
     username: 'username',
     password: 'password',
-    secret_code: 1234,
     phone_number: 'phone_number',
     dateOfBirth: new Date().toISOString(),
 };
@@ -44,12 +43,10 @@ describe('User flows', () => {
 
 
     it('Successful user registration', async () => {
-        const response = await runStartServer
+        await runStartServer
             .post('/api/registration')
             .send(registrationMockData)
             .expect(200);
-
-        userId = response.body.id;
     });
 
     it('Successful createClient', async () => {
@@ -72,6 +69,7 @@ describe('User flows', () => {
             .expect(200);
 
         token = response.body.access_token;
+        userId = response.body.id;
     });
 
     it('Get my data', async () => {

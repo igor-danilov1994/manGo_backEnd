@@ -17,7 +17,7 @@ import {
 import {userService} from "../../domain/userService";
 
 const smsSecretCode = 1234
-let userTempPhoneNumber = 0
+let userTempPhoneNumber = ''
 
 
 export const UserController = {
@@ -34,16 +34,10 @@ export const UserController = {
             res.status(400).json({ error: 'Error createClient' })
         }
     },
-    registration: async(req: RequestWithBody<RegistrationPayload>, res: CustomResponse<CustomUserType>) => {
-       if (!req.body.username ||
-           !req.body.password ||
-           !req.body.secret_code ||
-           !req.body.lastName ||
+    registration: async(req: RequestWithBody<RegistrationPayload>, res: CustomResponse<{ success: boolean }>) => {
+       if (!req.body.password ||
            !req.body.email ||
-           !req.body.firstName ||
-           !req.body.country ||
-           !req.body.referral ||
-           !req.body.phone_number
+           !req.body.referral
        ) {
            return res.status(400).json({ error: 'Invalid data!' })
        }
@@ -55,14 +49,17 @@ export const UserController = {
                return res.status(400).json({ error: 'This email already existing!' })
            }
 
-           const user = await userService.createUser(req.body, req.body.password)
+           const user = await userService.createUser({
+               ...req.body,
+               phone_number: userTempPhoneNumber,
+           }, req.body.password)
 
-           res.status(200).json(user);
+           res.json({ success: !!user });
        } catch (e) {
            console.log(e, 'error with registration')
        }
     },
-    login: async(req: RequestWithBody<LoginPayload>, res: CustomResponse<{ access_token: string }>) => {
+    login: async(req: RequestWithBody<LoginPayload>, res: CustomResponse<{ access_token: string, id: string }>) => {
        const { phone_number, password, email, client_secret, client_id } = req.body
 
         if (!phone_number || !password || !email){
@@ -88,7 +85,7 @@ export const UserController = {
                 return res.status(400).json({  error: 'Wrong login or password' })
             }
 
-            res.json({ access_token: token})
+            res.json({ access_token: token, id: user.id})
         } catch (e) {
             console.log(e, 'Error login')
             res.status(400).json({ error: 'Error login' })
@@ -139,32 +136,32 @@ export const UserController = {
             res.status(400).json({ error: 'Error getMyData' })
         }
     },
-    sendSMSCode: async(req: RequestWithBody<{phoneNumber: SendSMSCodePayload['phoneNumber']}>, res: CustomResponse<{secretCode: 1234}>) => {
-        const { phoneNumber } = req.body
+    sendSMSCode: async(req: RequestWithBody<{phone: SendSMSCodePayload['phone']}>, res: CustomResponse<unknown>) => {
+        const { phone } = req.body
         //Integrate some sms send service
 
-        if (!phoneNumber){
+        if (!phone){
             return res.status(400).json({ error: 'PhoneNumber is required' })
         }
 
-        userTempPhoneNumber = phoneNumber
+        userTempPhoneNumber = phone
 
-        res.send({ secretCode: smsSecretCode });
+        res.send(200);
     },
     checkSMSCode: async(req: RequestWithBody<SendSMSCodePayload>, res: CustomResponse<{access: boolean}>) => {
-        const { phoneNumber, code } = req.body
+        const { phone, code } = req.body
 
-        if (!phoneNumber || !code){
+        if (!phone || !code){
             return res.status(400).json({ error: 'SecretCode and phone number is required' })
         }
 
-        const isValidData = phoneNumber === userTempPhoneNumber && code === smsSecretCode
+        const isValidData = phone !== userTempPhoneNumber || code !== smsSecretCode
 
-        if (!isValidData) {
+        if (isValidData) {
             return res.status(400).json({ error: 'invalid code or phone number' });
         }
 
-        res.json({ access: isValidData })
+        res.json({ access: !isValidData })
     },
     deleteUser: async(req: RequestWithUser, res: CustomResponse<{ success: boolean }>) => {
         const userId = req.user.id

@@ -15,3 +15,4 @@ export const userRepositories = {
         return prisma.user.delete({ where: { id: userId } });
     }
 }
+
