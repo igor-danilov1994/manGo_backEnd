@@ -63,11 +63,19 @@ enum Roles {
 }
 
 export interface SendSMSCodePayload {
-    phone: string | null,
-    code: number
+    email: string | null,
 }
 
-export interface LoginPayload {
+export interface CheckSMSCodePayload extends SendSMSCodePayload {
+    code: string
+}
+
+export interface LoginResponse {
+    access_token: string,
+    id: string
+}
+
+export interface LoginRequest {
     phone_number: string | null,
     email: string | null,
     password: string | null
@@ -80,7 +88,7 @@ export interface AccessData {
     client_secret?: string,
 }
 
-export interface RegistrationPayload {
+export interface RegistrationRequest {
     username: string,
     password: string ,
     country: string ,

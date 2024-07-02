@@ -2,7 +2,7 @@ import express from "express";
 
 import  { checkUserAuth } from "../middleware/checkUserAuth";
 import { UserController } from "../controllers";
-import {checkData, validateEmail} from "../middleware/validateData";
+import { checkData, validateEmail } from "../middleware/validateData";
 
 
 const router = express.Router();
@@ -19,16 +19,20 @@ const {
     createClient
 } = UserController
 
+const guardValidData = [validateEmail, checkData]
+
 //USER
 router.post('/test', test)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-router.post('/login', validateEmail, checkData, login)
+router.post('/login', guardValidData, login)
 router.get('/create-client', createClient)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-router.post('/registration', validateEmail, checkData, registration)
-router.post('/registration/send-sms-code', sendSMSCode)
+router.post('/registration', guardValidData, registration)
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+router.post('/registration/send-sms-code', guardValidData, sendSMSCode)
 router.post('/registration/check-sms-code', checkSMSCode)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore

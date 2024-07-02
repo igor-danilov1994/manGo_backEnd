@@ -10,15 +10,16 @@ import { prepareUserData } from "../utils/prepareUserData";
 import {
     AccessData,
     CustomUserType,
-    LoginPayload,
-    RegistrationPayload,
-    SendSMSCodePayload
+    LoginRequest,
+    RegistrationRequest,
+    CheckSMSCodePayload,
+    SendSMSCodePayload,
+    LoginResponse
 } from "../types/user";
-import {userService} from "../../domain/userService";
+import { userService } from "../../domain/userService";
 
-const smsSecretCode = 1234
-let userTempPhoneNumber = ''
-
+let _tempSecretCode = '';
+let _tempUserEmail = ''
 
 export const UserController = {
     test: async(_: Request, res: CustomResponse<{ status: 'test passed' }>) => {
@@ -34,11 +35,8 @@ export const UserController = {
             res.status(400).json({ error: 'Error createClient' })
         }
     },
-    registration: async(req: RequestWithBody<RegistrationPayload>, res: CustomResponse<{ success: boolean }>) => {
-       if (!req.body.password ||
-           !req.body.email ||
-           !req.body.referral
-       ) {
+    registration: async(req: RequestWithBody<RegistrationRequest>, res: CustomResponse<{ success: boolean }>) => {
+       if (!req.body.password || !req.body.email || !req.body.referral) {
            return res.status(400).json({ error: 'Invalid data!' })
        }
 
@@ -51,7 +49,7 @@ export const UserController = {
 
            const user = await userService.createUser({
                ...req.body,
-               phone_number: userTempPhoneNumber,
+               email: _tempUserEmail,
            }, req.body.password)
 
            res.json({ success: !!user });
@@ -59,7 +57,7 @@ export const UserController = {
            console.log(e, 'error with registration')
        }
     },
-    login: async(req: RequestWithBody<LoginPayload>, res: CustomResponse<{ access_token: string, id: string }>) => {
+    login: async(req: RequestWithBody<LoginRequest>, res: CustomResponse<LoginResponse>) => {
        const { phone_number, password, email, client_secret, client_id } = req.body
 
         if (!phone_number || !password || !email){
@@ -136,37 +134,38 @@ export const UserController = {
             res.status(400).json({ error: 'Error getMyData' })
         }
     },
-    sendSMSCode: async(req: RequestWithBody<{phone: SendSMSCodePayload['phone']}>, res: CustomResponse<unknown>) => {
-        const { phone } = req.body
+    sendSMSCode: async(req: RequestWithBody<SendSMSCodePayload>, res: CustomResponse<unknown>) => {
+        const { email } = req.body
 
-        if (!phone){
+        if (!email){
             return res.status(400).json({ error: 'PhoneNumber is required' })
         }
 
-        const result = await userService.sendSMSCode(phone)
+        const result = await userService.sendSMSCode(email)
 
-        console.log('result', result)
-        //Integrate some sms send service
+       if (!result){
+           return res.status(400).json({ error: `Error with send code on ${email} - email` })
+       }
 
+        _tempUserEmail = email
+        _tempSecretCode = result.code
 
-        userTempPhoneNumber = phone
-
-        res.json(result);
+        res.json({ send: !!result });
     },
-    checkSMSCode: async(req: RequestWithBody<SendSMSCodePayload>, res: CustomResponse<{access: boolean}>) => {
-        const { phone, code } = req.body
+    checkSMSCode: async(req: RequestWithBody<CheckSMSCodePayload>, res: CustomResponse<{access: boolean}>) => {
+        const { email, code } = req.body
 
-        if (!phone || !code){
+        if (!email || !code){
             return res.status(400).json({ error: 'SecretCode and phone number is required' })
         }
 
-        const isValidData = phone !== userTempPhoneNumber || code !== smsSecretCode
+        const isInvalidData = email !== _tempUserEmail || `${code}` !== _tempSecretCode
 
-        if (isValidData) {
-            return res.status(400).json({ error: 'invalid code or phone number' });
+        if (isInvalidData) {
+            return res.status(400).json({ error: 'invalid code or email number' });
         }
 
-        res.json({ access: !isValidData })
+        res.json({ access: !isInvalidData })
     },
     deleteUser: async(req: RequestWithUser, res: CustomResponse<{ success: boolean }>) => {
         const userId = req.user.id

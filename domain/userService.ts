@@ -1,26 +1,28 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import {User} from "@prisma/client";
-
-import {prepareUserData} from "../src/utils/prepareUserData";
-import {AccessData, RegistrationPayload} from "../src/types/user";
-import {Nullable} from "../src/types/app";
-import {generateCreateClientRandomCode} from "../src/utils/generateCreateClientRandomCode";
-import {userRepositories} from "../repositories/user";
+import { User } from "@prisma/client";
 import nodemailer from "nodemailer";
+
+import { prepareUserData } from "../src/utils/prepareUserData";
+import { AccessData, RegistrationRequest } from "../src/types/user";
+import { Nullable } from "../src/types/app";
+import { generateCreateClientRandomCode } from "../src/utils/generateCreateClientRandomCode";
+import { userRepositories } from "../repositories/user";
 
 let temp_client_id = ''
 let temp_client_secret_code = ''
 
-const email = `igor.danilov1824@mail.com`;
-
 const transporter = nodemailer.createTransport({
-    host: 'mail',
-    port: 465, // Используйте 465 для secure: true, 587 для secure: false
-    secure: true, // use SSL
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    tls: {
+        rejectUnauthorized: false,
+    },
+    connectionTimeout: 60000,
     auth: {
-        user: email,
-        pass: 'Muheso1994'
+        user: process.env.USER_FOR_SEND_MESSAGE,
+        pass: process.env.PASS_FOR_SEND_MESSAGE
     }
 });
 
@@ -44,7 +46,7 @@ export const userService = {
 
         return await userRepositories.findUniqueUser(where)
     },
-    createUser: async (userData: RegistrationPayload, password: string) => {
+    createUser: async (userData: RegistrationRequest, password: string) => {
         const hashedPassword = await bcrypt.hash(password, 3)
 
         const user = await userRepositories.createUser({...userData, password: hashedPassword})
@@ -52,19 +54,22 @@ export const userService = {
         return prepareUserData(user)
     },
     sendSMSCode: async (email: string) => {
+        const code = generateCreateClientRandomCode('numbers', 4)
 
         try {
             const mailOptions = {
-                from: `igor.danilov1824@gmail.com`,
+                from: `ManGo Trade Platform <no-reply@manGo.io>`,
                 to: email,
-                subject: 'SMS Notification from manGo Trade',
-                text: generateCreateClientRandomCode('numbers', 4)
+                subject: 'Secret code for manGo Trade Platform',
+                text: `Secret code for manGo Trade Platform - ${code}`
             };
 
-            return await transporter.sendMail(mailOptions)
+            const response = await transporter.sendMail(mailOptions)
+
+            return { email: response.accepted[0], code }
         } catch (error) {
             console.error('Ошибка при отправке SMS:', error);
-            return error
+            return false
         }
     },
     checkClientAccessData: async (accessData: AccessData): Promise<boolean> => {
