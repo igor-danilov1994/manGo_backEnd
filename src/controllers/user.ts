@@ -138,15 +138,20 @@ export const UserController = {
     },
     sendSMSCode: async(req: RequestWithBody<{phone: SendSMSCodePayload['phone']}>, res: CustomResponse<unknown>) => {
         const { phone } = req.body
-        //Integrate some sms send service
 
         if (!phone){
             return res.status(400).json({ error: 'PhoneNumber is required' })
         }
 
+        const result = await userService.sendSMSCode(phone)
+
+        console.log('result', result)
+        //Integrate some sms send service
+
+
         userTempPhoneNumber = phone
 
-        res.send(200);
+        res.json(result);
     },
     checkSMSCode: async(req: RequestWithBody<SendSMSCodePayload>, res: CustomResponse<{access: boolean}>) => {
         const { phone, code } = req.body

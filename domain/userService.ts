@@ -1,15 +1,28 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { User } from "@prisma/client";
+import {User} from "@prisma/client";
 
-import { prepareUserData } from "../src/utils/prepareUserData";
-import { AccessData, RegistrationPayload } from "../src/types/user";
-import { Nullable } from "../src/types/app";
-import { generateCreateClientRandomCode } from "../src/utils/generateCreateClientRandomCode";
-import { userRepositories } from "../repositories/user";
+import {prepareUserData} from "../src/utils/prepareUserData";
+import {AccessData, RegistrationPayload} from "../src/types/user";
+import {Nullable} from "../src/types/app";
+import {generateCreateClientRandomCode} from "../src/utils/generateCreateClientRandomCode";
+import {userRepositories} from "../repositories/user";
+import nodemailer from "nodemailer";
 
 let temp_client_id = ''
 let temp_client_secret_code = ''
+
+const email = `igor.danilov1824@mail.com`;
+
+const transporter = nodemailer.createTransport({
+    host: 'mail',
+    port: 465, // Используйте 465 для secure: true, 587 для secure: false
+    secure: true, // use SSL
+    auth: {
+        user: email,
+        pass: 'Muheso1994'
+    }
+});
 
 export const userService = {
     createClient: async () => {
@@ -37,6 +50,22 @@ export const userService = {
         const user = await userRepositories.createUser({...userData, password: hashedPassword})
 
         return prepareUserData(user)
+    },
+    sendSMSCode: async (email: string) => {
+
+        try {
+            const mailOptions = {
+                from: `igor.danilov1824@gmail.com`,
+                to: email,
+                subject: 'SMS Notification from manGo Trade',
+                text: generateCreateClientRandomCode('numbers', 4)
+            };
+
+            return await transporter.sendMail(mailOptions)
+        } catch (error) {
+            console.error('Ошибка при отправке SMS:', error);
+            return error
+        }
     },
     checkClientAccessData: async (accessData: AccessData): Promise<boolean> => {
         return accessData.client_id === temp_client_id || accessData.client_secret === temp_client_secret_code
