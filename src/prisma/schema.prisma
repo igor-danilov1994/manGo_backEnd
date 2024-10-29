@@ -8,51 +8,60 @@ datasource db {
 }
 
 model User {
-  id                        String    @id @default(auto()) @map("_id") @db.ObjectId
-  email                     String    @unique
+  id                        String         @id @default(auto()) @map("_id") @db.ObjectId
+  email                     String         @unique
   password                  String
   firstName                 String?
-  dateOfBirth               String?
-  createdAt                DateTime  @default(now())
-  updatedAt                DateTime  @updatedAt
   lastName                  String?
+  middleName                String?
+  dateOfBirth               String?
+  createdAt                 DateTime       @default(now())
+  updatedAt                 DateTime       @updatedAt
+  secretCode                Int            @unique
   referral                  Int
   country                   String
-  phone_number              String?
+  phoneNumber               String?
   username                  String?
-  secret_code               Int?
   isVerify                  Int?
-  amountOfContract          Int?
-  receivedByContract        Int?
-  amountOfRewardsReceived   Int?
-  structureTurnover         Int?
-  numberOfPartners          Int?
-  dateWithUs                Int?
   balance                   Int?
-  sessionLiveTime           Int?
   rzmBalance                Int?
   totalContracts            Int?
   locale                    String?
-  middleName                String?
   avatar                    String?
   level                     String?
   link                      String?
-  inviterName               String?
-  inviterEmail              String?
-  inviterPhone              String?
-  inviterAvatar             String?
-  connectLink               String?
-  rzmLevel                  String?
-  oldBalance                String?
   hasPromo                  Boolean?
   isTelegramConnect         Boolean?
   canRequestCard            Boolean?
   hasHeir                   Boolean?
   showGlobalStat            Boolean?
+  inviter                   Inviter?
+  socialMedia               SocialMedia?
+  notifications             Notifications?
+}
+
+model Inviter {
+  id                        String         @id @default(auto()) @map("_id") @db.ObjectId
+  name                      String?
+  email                     String?
+  phone                     String?
+  avatar                    String?
+  userId                    String         @unique
+  user                      User           @relation(fields: [userId], references: [id])
+}
+
+model SocialMedia {
+  id                        String         @id @default(auto()) @map("_id") @db.ObjectId
   facebook                  String?
   instagram                 String?
   twitter                   String?
   telegram                  String?
+  userId                    String         @unique
+  user                      User           @relation(fields: [userId], references: [id])
+}
+
+model Notifications {
+  id                        String         @id @default(auto()) @map("_id") @db.ObjectId
   onIncomeMail              Boolean?
   onContractIncomeMail      Boolean?
   onSuccessWithdrawMail     Boolean?
@@ -71,6 +80,6 @@ model User {
   onCourseTg                Boolean?
   onWebinarsTg              Boolean?
   onNewsTg                  Boolean?
-  roles                     String?
+  userId                    String         @unique
+  user                      User           @relation(fields: [userId], references: [id])
 }
-

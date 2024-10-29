@@ -1,48 +1,44 @@
 import request from "supertest";
-import { app, closeServer } from "../src";
+import {app, closeServer} from "../src/app";
 import {
     LoginRequest,
     RegistrationRequest,
     CheckSMSCodePayload,
     SendSMSCodePayload
 } from "../src/types/user";
-
-const registrationMockData: RegistrationRequest = {
-    email: process.env.MOCK_USER_FOR_SEND_MESSAGE || '',
-    lastName: 'lastname',
-    firstName: 'firstname',
-    country: 'country',
-    referral: 1,
-    username: 'username',
-    password: 'password',
-    phone_number: 'phone_number',
-    dateOfBirth: new Date().toISOString(),
-};
-
-const loginMockData: LoginRequest = {
-    email: registrationMockData.email,
-    password: registrationMockData.password,
-    phone_number: registrationMockData.phone_number,
-};
-
-let temp_client_id = ''
-let temp_client_secret_code = ''
+import {GenerateCreateClientRandomCode} from "../src/utils";
 
 describe('User flows', () => {
     const runStartServer = request(app);
+    const randomCodeGenerator = new GenerateCreateClientRandomCode().generate('numbers', 4)
+    const secret_code = Number(randomCodeGenerator)
+
+    const registrationMockData: RegistrationRequest = {
+        email: process.env.MOCK_USER_FOR_SEND_MESSAGE || '',
+        lastName: 'lastname',
+        firstName: 'firstname',
+        country: 'country',
+        referral: 1,
+        username: 'username',
+        password: 'password',
+        phone_number: 'phone_number',
+        dateOfBirth: new Date().toISOString(),
+        secret_code
+    };
+
+    const loginMockData: LoginRequest = {
+        email: registrationMockData.email,
+        password: registrationMockData.password,
+        phone_number: registrationMockData.phone_number,
+    };
+
     let token = '';
     let userId = '';
+    let temp_client_id = ''
+    let temp_client_secret_code = ''
 
     afterAll(async () => {
         await closeServer();
-    });
-
-    it('Test endpoint', async () => {
-        const response = await runStartServer
-            .post('/api/test')
-            .expect(200);
-
-        expect(response.body).toEqual({ status: 'test passed' });
     });
 
     it('Successful send sms code', async () => {
@@ -55,7 +51,7 @@ describe('User flows', () => {
     it('Successful check sms code', async () => {
       await runStartServer
             .post('/api/registration/check-sms-code')
-            .send({ email: registrationMockData.email, code: '0000' } as CheckSMSCodePayload)
+            .send({ email: registrationMockData.email, code: secret_code } as CheckSMSCodePayload)
             .expect(400);
     });
 

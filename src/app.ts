@@ -1,8 +1,8 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import {connect} from 'mongoose';
 import router from './routers';
 
@@ -18,6 +18,7 @@ app.use(bodyParser.json());
 app.use(morgan('dev'));
 
 app.use('/api', router);
+
 
 const server = app.listen(port, async () => {
     try {

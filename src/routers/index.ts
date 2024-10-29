@@ -1,9 +1,6 @@
 import express from "express";
-
-import  { checkUserAuth } from "../middleware/checkUserAuth";
-import { UserController } from "../controllers";
-import { checkData, validateEmail } from "../middleware/validateData";
-
+import {userController} from "../controllers";
+import {AuthMiddleware, ValidatorMiddleware} from "../middleware";
 
 const router = express.Router();
 const {
@@ -14,39 +11,24 @@ const {
     updateUser,
     sendSMSCode,
     deleteUser,
-    test,
     checkSMSCode,
     createClient
-} = UserController
+} = userController
 
-const guardValidData = [validateEmail, checkData]
+const authMiddleware = new AuthMiddleware();
+const guardValidData = [ValidatorMiddleware.validateEmail, ValidatorMiddleware.checkData]
 
 //USER
-router.post('/test', test)
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 router.post('/login', guardValidData, login)
 router.get('/create-client', createClient)
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 router.post('/registration', guardValidData, registration)
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 router.post('/registration/send-sms-code', guardValidData, sendSMSCode)
 router.post('/registration/check-sms-code', checkSMSCode)
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-router.get('/getMyData', checkUserAuth, getMyData)
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-router.get('/user/:id', checkUserAuth, getUserById)
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-router.put('/user', checkUserAuth, updateUser)
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-router.delete('/user/delete', checkUserAuth, deleteUser)
-// router.put('/users/:id', checkUserAuth, uploads.single('avatar'), updateUser)
+router.get('/getMyData', authMiddleware.checkUserAuth, getMyData)
+router.get('/user/:id', authMiddleware.checkUserAuth, getUserById)
+router.put('/user', authMiddleware.checkUserAuth, updateUser)
+router.delete('/user/delete', authMiddleware.checkUserAuth, deleteUser)
+// router.put('/users/:id', authMiddleware.checkUserAuth, uploads.single('avatar'), updateUser)
 
 export default router;
 
